@@ -59,7 +59,6 @@ sub get_ksei_sec_ownership_url {
     # because IDX holiday might be slightly different. so we just try to probe
     # for the URL for two weeks before giving up.
     for (1..14) {
-        next if $dt->day_of_week > 5;
         my $url = sprintf(
             "https://www.ksei.co.id/Download/BalanceposEfek%04d%02d%02d.zip",
             $dt->year, $dt->month, $dt->day,
@@ -67,6 +66,7 @@ sub get_ksei_sec_ownership_url {
         log_trace "Trying $url ...";
         my $res = HTTP::Tiny->new->head($url);
         if ($res->{status} == 404) {
+            while (1) { $dt->subtract(days => 1); last unless $dt->day_of_week > 5 }
             next;
         } elsif ($res->{status} == 200) {
             return [200, "OK", $url];
